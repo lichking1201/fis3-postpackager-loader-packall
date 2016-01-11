@@ -49,7 +49,7 @@ function rudePackager(ret, pack, settings, opt) {
     if (settings.packs.length){
         var hit = false
         settings.packs.forEach(function(packFile){
-        if(file.subpath === packFile) return hit = true
+        if(file.subpath === '/' + packFile) return hit = true
       })
       if(!hit) return
     }
