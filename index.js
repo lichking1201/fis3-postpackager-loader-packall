@@ -46,8 +46,15 @@ function rudePackager(ret, pack, settings, opt) {
       rudePackager.lang[settings.processor[file.ext]] ||
       rudePackager.lang.html;
 
+    if (settings.packs.length){
+        var hit = false
+        settings.packs.forEach(function(packFile){
+        if(file.subpath === packFile) return hit = true
+      })
+      if(!hit) return
+    }
     // 非 htmlLike 或者 没有处理器，或者已经处理过了，则跳过。
-    if (file.release === false ||
+    else if (file.release === false ||
         !file.isHtmlLike ||
         file.loaderLang === false ||
         file.loaderLang === null ||
