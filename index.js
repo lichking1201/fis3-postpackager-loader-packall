@@ -22,7 +22,7 @@ function rudePackager(ret, pack, settings, opt) {
 
   Object.keys(files).forEach(function(subpath) {
     var file = files[subpath];
-
+    if(file.map && file.map.pkg) file.map.aioPkg = file.map.pkg
     compile(file);
   });
 
