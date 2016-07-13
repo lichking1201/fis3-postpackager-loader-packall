@@ -100,7 +100,7 @@ function rudePackager(ret, pack, settings, opt) {
     file._resource = resource;
     processor.init && processor.init(file, resource, settings);
 
-    if (settings.packs.length) {
+    if (settings.entry.length) {
       resource.add(file.id)
     }
     processor.beforePack && processor.beforePack(file, resource, settings, includeList);
