@@ -73,7 +73,7 @@ function rudePackager(ret, pack, settings, opt) {
     file._resource = resource;
     processor.init && processor.init(file, resource, settings);
 
-    if (settings.packs.length) {
+    if (settings.entry.length) {
       resource.add(file.id)
     }
     // 如果有设置需要额外的模块加入到 resouceMap 当中
