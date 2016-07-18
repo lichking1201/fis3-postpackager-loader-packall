@@ -20,35 +20,8 @@ function rudePackager(ret, pack, settings, opt) {
     }
   });
 
-  var includeList = [];
-  // 如果有设置需要额外的模块加入到 resouceMap 当中
-  if (settings.include) {
-    var patterns = settings.include;
-    if (!Array.isArray(patterns)) {
-      patterns = [patterns];
-    }
-
-
-    patterns.forEach(function(pattern, index) {
-      var exclude = typeof pattern === 'string' && pattern.substring(0, 1) === '!';
-
-      if (exclude) {
-        pattern = pattern.substring(1);
-
-        // 如果第一个规则就是排除用法，都没有获取结果就排除，这是不合理的用法。
-        // 不过为了保证程序的正确性，在排除之前，通过 `**` 先把所有文件获取到。
-        // 至于性能问题，请用户使用时规避。
-        index === 0 && (includeList = find('**'));
-      }
-
-      var mathes = find(pattern);
-      includeList = _[exclude ? 'difference' : 'union'](includeList, mathes);
-    });
-  }
-
   Object.keys(files).forEach(function(subpath) {
     var file = files[subpath];
-    // 如果有pkg打包，也添加到aio中，避免重复打包
     if(file.map && file.map.pkg) file.map.aioPkg = file.map.pkg
     compile(file);
   });
@@ -73,9 +46,9 @@ function rudePackager(ret, pack, settings, opt) {
       rudePackager.lang[settings.processor[file.ext]] ||
       rudePackager.lang.html;
 
-    if (settings.entry.length){
+    if (settings.packs.length){
         var hit = false
-        settings.entry.forEach(function(packFile){
+        settings.packs.forEach(function(packFile){
         if(file.subpath === '/' + packFile) return hit = true
       })
       if(!hit) return
@@ -103,7 +76,36 @@ function rudePackager(ret, pack, settings, opt) {
     if (settings.packs.length) {
       resource.add(file.id)
     }
-    processor.beforePack && processor.beforePack(file, resource, settings, includeList);
+    // 如果有设置需要额外的模块加入到 resouceMap 当中
+    if (settings.include) {
+      var patterns = settings.include;
+      if (!Array.isArray(patterns)) {
+        patterns = [patterns];
+      }
+
+      var list = [];
+      patterns.forEach(function(pattern, index) {
+        var exclude = typeof pattern === 'string' && pattern.substring(0, 1) === '!';
+
+        if (exclude) {
+          pattern = pattern.substring(1);
+
+          // 如果第一个规则就是排除用法，都没有获取结果就排除，这是不合理的用法。
+          // 不过为了保证程序的正确性，在排除之前，通过 `**` 先把所有文件获取到。
+          // 至于性能问题，请用户使用时规避。
+          index === 0 && (list = find('**'));
+        }
+
+        var mathes = find(pattern);
+        list = _[exclude ? 'difference' : 'union'](list, mathes);
+      });
+
+      list.forEach(function(file) {
+        resource.add(file.id, true);
+      });
+    }
+
+    processor.beforePack && processor.beforePack(file, resource, settings);
 
     if (settings.allInOne) {
       allInOnePack(file, resource, ret, settings.allInOne === true ? {} : settings.allInOne);
@@ -113,7 +115,6 @@ function rudePackager(ret, pack, settings, opt) {
     processor(file, resource, settings);
     processor.after && processor.after(file, resource, settings);
 
-    file.useCache = false; // 让其缓存失效，watch 的时候，下次需要重新发布过去。
     ret.pkg[file.subpath] = file;
   }
 }
